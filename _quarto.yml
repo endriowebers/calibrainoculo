@@ -1,0 +1,24 @@
+project:
+  type: website
+
+website:
+  title: "calibrainoculoERW.github.io"
+  navbar:
+    left:
+      - href: app_calibra_inoculo.qmd
+        text: Calibração de Inóculo
+
+format:
+  html:
+    theme: 
+      - cosmo
+      - estilo_ERW.scss
+
+
+page-footer:
+    background: light # or dark
+    left:
+      - "Copyright 2024, Endrio Webers"
+    right:
+      - icon: github
+        href: https://github.com/endriowebers
