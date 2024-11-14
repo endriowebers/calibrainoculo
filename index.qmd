@@ -7,6 +7,14 @@ format:
       - shinylive-sw.js
 filters:
   - shinylive
+  
+page-footer:
+    background: light # or dark
+    left:
+      - "Copyright 2024, Endrio Webers"
+    right:
+      - icon: github
+        href: https://github.com/endriowebers
 ---
 
 #  Determinação e Calibração da Concentração de Inóculo Fungico {.center}

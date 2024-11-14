@@ -2,11 +2,14 @@ project:
   type: website
 
 website:
-  title: "calibrainoculo"
+  title: "Calibração de Inóculo Fungico"
   navbar:
     left:
-      - href: index.qmd
-        text: Calibração de Inóculo
+      - href: index.qmd    
+      - text: Endrio Webers 
+        href: https://endriowebers.github.io/
+      - icon: github 
+        href: https://github.com/endriowebers
 
 format:
   html:
