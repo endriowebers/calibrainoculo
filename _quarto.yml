@@ -3,13 +3,11 @@ project:
 
 website:
   navbar:
-  title: "Calibração de Inóculo Fungico"
+    title: "Calibração de Inóculo Fúngico"
     right:
-      - href: index.qmd 
-      - text: 
-      - text: Endrio Webers 
+      - text: "Endrio Webers"
         href: https://endriowebers.github.io/
-      - icon: github 
+      - icon: github
         href: https://github.com/endriowebers
 
 format:
