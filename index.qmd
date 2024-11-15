@@ -133,3 +133,21 @@ shinyApp(ui = ui, server = server)
 Referência: Alfenas A., Mafia R. __Métodos em Fitopatologia.__ 2ª edição. Editora UFV. 2016.
 
 
+
+
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------
+
+---
+ 
+### "Copyright 2024, Endrio Webers" {.center}
+
+---
