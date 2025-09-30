@@ -7,7 +7,8 @@ format:
       - shinylive-sw.js
 filters:
   - shinylive
-
+editor_options: 
+  chunk_output_type: console
 ---
 
 #  Determinação e Calibração da Concentração de Inóculo Fúngico {.center}
@@ -36,8 +37,6 @@ Para utilizar o aplicativo, preencha os campos conforme o indicado e escolha o q
 - Volume da suspensão inicial para preparo da suspensão de inóculo final em mL"
 
 - Volume de veículo para preparo da suspensão de inóculo final em mL"
-
-
 
 
 ```{shinylive-r}
@@ -88,18 +87,26 @@ ui <- fluidPage(
       h4("Parâmetros de Entrada"),
       
       # Usamos req() no server para garantir que o valor seja maior que 0
-      numericInput("numero", "Número médio de esporos contados:", value = 50, min = 1),
+      numericInput("numero", "Número MÉDIO de esporos contados:",  min = 0),
       
       radioButtons("quadrante", "Quadrante utilizado na contagem:",
                    choices = c("A", "a", "b", "c", "c'"), 
                    selected = "A"),
       
-      numericInput("volume", "Volume final desejado (mL):", value = 100, min = 1),
+      numericInput("volume", "Volume final desejado (mL):",  min = 0),
       
       # As opções de concentração foram mantidas
       radioButtons("conc", "Concentração final desejada (esporos/mL):",
-                   choices = c("10²" = 100, "10³" = 1000, "10⁴" = 10000,
-                               "10⁵" = 100000, "10⁶" = 1000000, "10⁷" = 10000000),
+                   choices = c("10²" = 100, 
+                               "10³" = 1000,
+                               "10⁴" = 10000,
+                               "5X10⁴" = 50000,
+                               "10⁵" = 100000, 
+                               "10⁶" = 1000000, 
+                               "10⁷" = 10000000,
+                               "10⁸" = 100000000,
+                               "10⁹ "= 1000000000,
+                               "10¹⁰"= 10000000000),
                    selected = 10000)
     ),
     
@@ -107,18 +114,7 @@ ui <- fluidPage(
     mainPanel(
       h4("Resultados"),
       # uiOutput permite criar a interface dinamicamente no server
-      uiOutput("resultados_ui"), 
-      hr(),
-      h4("Fórmulas Utilizadas"),
-      # Adicionando as fórmulas para clareza
-      withMathJax(
-        p('1. Concentração Inicial ($$C_i$$): $$C_i = N \\times FC$$'),
-        p('2. Volume do Inóculo ($$V_i$$): $$C_i \\times V_i = C_f \\times V_f \\implies V_i = \\frac{C_f \\times V_f}{C_i}$$'),
-        p('3. Volume do Veículo (água): $$V_{água} = V_f - V_i$$'),
-        p('Onde:'),
-        p('$$N$$ = Número médio de esporos contados'),
-        p('$$FC$$ = Fator de Correção do quadrante'),
-        p('$$C_f$$ e $$V_f$$ = Concentração e Volume finais desejados')
+      uiOutput("resultados_ui")
       )
     )
   )
@@ -172,7 +168,7 @@ server <- function(input, output, session) {
           p(strong("Volume da Suspensão Inicial (Vi): "), 
             # Arredonda para 2 casas decimais
             round(res$volume_inoculo, 2), " mL"),
-          p(strong("Volume de Veículo (água/meio): "), 
+          p(strong("Volume de Veículo (água): "), 
             round(res$volume_veiculo, 2), " mL")
         )
       )
