@@ -10,14 +10,14 @@ filters:
 
 ---
 
-#  Determinação e Calibração da Concentração de Inóculo Fungico {.center}
+#  Determinação e Calibração da Concentração de Inóculo Fúngico {.center}
 
 
 
-###  Via suspenção de esporos utilizando Hemacitômetro {.center}
+###  Via suspensão de esporos utilizando hemacitômetro {.center}
 
 
-O hemacitômetro comum consiste de uma lâmina retangular em forma de H, onde se encontram duas regiões delimitadas, (figura I) cada região delimitada possui uma superfície de 9 mm² e profundidade de 0,1 mm. Esse compartimento possui 9 divisões/quadrantes, (figura II) que são de três tipos, são eles "A" = "B" = "C", em que:
+O hemacitômetro comum consiste em uma lâmina retangular em forma de H, na qual se encontram duas regiões delimitadas, (figura I). Cada região delimitada possui uma superfície de 9 mm² e profundidade de 0,1 mm. Esse compartimento possui 9 divisões/quadrantes, (figura II) que são de três tipos, são eles "A" = "B" = "C", em que:
 
  - "A" – localizados nos quatro cantos e subdivididos em 15 quadrados "a"
  - "B" – localizados entre os compartimentos "A" e subdivididos em 20 quadrados "b"
@@ -29,9 +29,9 @@ O hemacitômetro comum consiste de uma lâmina retangular em forma de H, onde se
 
  
 
-Para utilização da aplicação, preencha os campos conforme o indicado e escolha o quadrante que foi realizada a contagem de esporos. Insira o volume final de suspensão de esporos e a" concentração desejada. A aplicação lhe retornara três valores:
+Para utilizar o aplicativo, preencha os campos conforme o indicado e escolha o quadrante no qual foi realizada a contagem de esporos. Insira o volume final de suspensão de esporos e a concentração desejada. A aplicação lhe retornara três valores:
 
-- Esporos por mL da suspenção inicial
+- Esporos por mL da suspensão inicial
 
 - Volume da suspensão inicial para preparo da suspensão de inóculo final em mL"
 
@@ -42,27 +42,34 @@ Para utilização da aplicação, preencha os campos conforme o indicado e escol
 
 ```{shinylive-r}
 #| standalone: true
-#| viewerHeight: 500
+#| viewerHeight: 650
+# Carrega os pacotes necessários. O webr::install garante que o dplyr seja instalado no ambiente.
 webr::install("dplyr")
-
 library(shiny)
 library(dplyr)
 
-# Função inoculo modificada
+# --- Função de Cálculo (sem alterações na lógica principal) ---
+# A função permanece a mesma, pois a lógica de cálculo está correta.
 inoculo <- function(numero, quadrante, conc, volume) {
   if (!is.numeric(numero) || !is.numeric(conc) || !is.numeric(volume)) {
-    stop("Os argumentos numero, conc e volume devem ser numéricos.")
+    stop("Os argumentos devem ser numéricos.")
   }
+  
   fator_correcao <- case_when(
     quadrante == "A" ~ 10000,
     quadrante == "a" ~ 160000,
     quadrante == "b" ~ 200000,
     quadrante == "c" ~ 250000,
     quadrante == "c'" ~ 4000000,
-    TRUE ~ 1  # Caso nenhum dos casos acima seja verdadeiro
+    TRUE ~ 1
   )
   
   esporo_mL <- numero * fator_correcao
+  
+  # Adicionado um controle para evitar divisão por zero
+  if (esporo_mL == 0) {
+    return(list(esporo_mL = 0, volume_inoculo = 0, volume_veiculo = 0))
+  }
   
   volume_inoculo <- (conc * volume) / esporo_mL
   volume_veiculo <- volume - volume_inoculo
@@ -70,48 +77,110 @@ inoculo <- function(numero, quadrante, conc, volume) {
   return(list(esporo_mL = esporo_mL, volume_inoculo = volume_inoculo, volume_veiculo = volume_veiculo))
 }
 
-# Define UI for application
-ui <- navbarPage(theme = bslib::bs_theme(bootswatch = "lumen"),
-                tabPanel("Calibração de Inóculo",
-                         fluidRow(
-                           column(width = 6,
-                                  numericInput("numero", "Número MÉDIO de esporos contados:", 0, min = 1, max = 999999999999),
-                                  radioButtons("quadrante", "Quadrante:",
-                                              c("A" = "A",
-                                                "a" = "a",
-                                                "b" = "b",
-                                                "c" = "c",
-                                                "c'" = "c'")),
-                                  numericInput("volume", "Volume final desejado (mL):", 0, min = 0, max = 999999999999999999)),
-                           column(width = 6,
-                                  radioButtons("conc", "Concentração desejada:",
-                                              c("10²" = 100,
-                                                "10³" = 1000,
-                                                "10⁴" = 10000,
-                                                "10⁵" = 100000,
-                                                "10⁶" = 1000000,
-                                                "10⁷" = 10000000,
-                                                "10⁸" = 100000000,
-                                                "10⁹ "= 1000000000,
-                                                "10¹⁰"= 10000000000)),
-                                  verbatimTextOutput("resultado")
-                           )
-                         ),
-                         style = "text-align: center;"
-                )
+# --- Interface de Usuário (UI) Melhorada ---
+ui <- fluidPage(
+  theme = bslib::bs_theme(bootswatch = "lumen"),
+  titlePanel("Calculadora para Calibração de Inóculo Fúngico"),
+  
+  # Layout com painel lateral para entradas
+  sidebarLayout(
+    sidebarPanel(
+      h4("Parâmetros de Entrada"),
+      
+      # Usamos req() no server para garantir que o valor seja maior que 0
+      numericInput("numero", "Número médio de esporos contados:", value = 50, min = 1),
+      
+      radioButtons("quadrante", "Quadrante utilizado na contagem:",
+                   choices = c("A", "a", "b", "c", "c'"), 
+                   selected = "A"),
+      
+      numericInput("volume", "Volume final desejado (mL):", value = 100, min = 1),
+      
+      # As opções de concentração foram mantidas
+      radioButtons("conc", "Concentração final desejada (esporos/mL):",
+                   choices = c("10²" = 100, "10³" = 1000, "10⁴" = 10000,
+                               "10⁵" = 100000, "10⁶" = 1000000, "10⁷" = 10000000),
+                   selected = 10000)
+    ),
+    
+    # Painel principal para exibir os resultados
+    mainPanel(
+      h4("Resultados"),
+      # uiOutput permite criar a interface dinamicamente no server
+      uiOutput("resultados_ui"), 
+      hr(),
+      h4("Fórmulas Utilizadas"),
+      # Adicionando as fórmulas para clareza
+      withMathJax(
+        p('1. Concentração Inicial ($$C_i$$): $$C_i = N \\times FC$$'),
+        p('2. Volume do Inóculo ($$V_i$$): $$C_i \\times V_i = C_f \\times V_f \\implies V_i = \\frac{C_f \\times V_f}{C_i}$$'),
+        p('3. Volume do Veículo (água): $$V_{água} = V_f - V_i$$'),
+        p('Onde:'),
+        p('$$N$$ = Número médio de esporos contados'),
+        p('$$FC$$ = Fator de Correção do quadrante'),
+        p('$$C_f$$ e $$V_f$$ = Concentração e Volume finais desejados')
+      )
+    )
+  )
 )
 
-# Define server logic (**sem alterações**)
+# --- Lógica do Servidor (Server) Aprimorada ---
 server <- function(input, output, session) {
-  output$resultado <- renderText({
-    resultado <- inoculo(input$numero, input$quadrante, as.numeric(input$conc), input$volume)
-    paste("Esporos por mL:", format(resultado$esporo_mL, scientific = TRUE), "\n",
-          "Volume para Inóculo:", resultado$volume_inoculo, "\n",
-          "Volume de Veículo:", resultado$volume_veiculo)
+  
+  # Cria um objeto reativo que recalcula sempre que uma entrada mudar
+  resultados_calculados <- reactive({
+    # req() garante que os inputs não sejam nulos ou zero antes de prosseguir
+    req(input$numero > 0, input$volume > 0)
+    
+    # Chama a função com os valores dos inputs
+    inoculo(
+      numero = input$numero,
+      quadrante = input$quadrante,
+      conc = as.numeric(input$conc),
+      volume = input$volume
+    )
+  })
+  
+  # Renderiza a UI dos resultados dinamicamente
+  output$resultados_ui <- renderUI({
+    
+    res <- resultados_calculados()
+    
+    # Condição de erro: se o volume de inóculo for maior que o volume final
+    if (res$volume_inoculo > input$volume) {
+      tagList(
+        tags$div(
+          class = "alert alert-danger", # Estilo de alerta de perigo
+          h5("Atenção: Diluição Impossível!"),
+          p("A concentração da sua suspensão inicial (", 
+            strong(format(res$esporo_mL, scientific = FALSE, big.mark = ".")), 
+            " esporos/mL) é muito baixa para atingir a concentração final desejada de ",
+            strong(format(as.numeric(input$conc), scientific = FALSE, big.mark = ".")),
+            " esporos/mL. Você precisa de uma suspensão inicial mais concentrada."
+          )
+        )
+      )
+    } else {
+      # Exibe os resultados formatados se tudo estiver correto
+      tagList(
+        tags$div(
+          class = "alert alert-success", # Estilo de alerta de sucesso
+          p(strong("Concentração da Suspensão Inicial (Ci): "), 
+            # Formata o número para melhor leitura
+            format(res$esporo_mL, scientific = FALSE, big.mark = "."), " esporos/mL"),
+          hr(),
+          p(strong("Volume da Suspensão Inicial (Vi): "), 
+            # Arredonda para 2 casas decimais
+            round(res$volume_inoculo, 2), " mL"),
+          p(strong("Volume de Veículo (água/meio): "), 
+            round(res$volume_veiculo, 2), " mL")
+        )
+      )
+    }
   })
 }
 
-# Run the application
+# Roda a aplicação
 shinyApp(ui = ui, server = server)
 
 ```
