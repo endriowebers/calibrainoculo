@@ -8,14 +8,9 @@ on:
 name: demo-website
 
 jobs:
-  demo-website:
+  # Job para construir o site
+  build: # Renomeado de "demo-website" para "build" por clareza
     runs-on: ubuntu-latest
-    concurrency:
-      group: quarto-website-${{ github.event_name != 'pull_request' || github.run_id }}
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
     steps:
       - name: "Check out repository"
         uses: actions/checkout@v4
@@ -30,13 +25,14 @@ jobs:
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           packages: |
-            shinylive@0.3.0
+            shinylive
             knitr
             rmarkdown
             downlit
             xml2
             dplyr
             webr
+            bslib # Adicionado para garantir que o tema funcione
 
       - name: "Set up Quarto"
         uses: quarto-dev/quarto-actions/setup@v2
@@ -45,18 +41,26 @@ jobs:
         uses: quarto-dev/quarto-actions/render@v2
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v2
-        with: 
-          retention-days: 1
+        # Ação atualizada da v2 para v3
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # O caminho do artefato é automaticamente detectado pelo Quarto
+          # então não é mais necessário especificá-lo
+          path: _site/
 
+  # Job para fazer o deploy
   deploy:
     runs-on: ubuntu-latest
-    needs: demo-website
+    # Precisa esperar o job de build terminar
+    needs: build
     environment:
-      name: github-pages  # Define o ambiente necessário para o Pages
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
-      pages: write  # Define permissões para o Pages
+      pages: write
       id-token: write
     steps:
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v2
+        id: deployment
+        # Ação atualizada da v2 para v4
+        uses: actions/deploy-pages@v4
