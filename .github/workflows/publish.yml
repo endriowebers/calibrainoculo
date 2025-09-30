@@ -32,7 +32,7 @@ jobs:
             xml2
             dplyr
             webr
-            bslib # Adicionado para garantir que o tema funcione
+            bslib 
 
       - name: "Set up Quarto"
         uses: quarto-dev/quarto-actions/setup@v2
